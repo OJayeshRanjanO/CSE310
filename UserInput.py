@@ -16,10 +16,25 @@ def parseArgs(argv):
 		agHandler(argv)
 	elif argv[1] == "sg":
 		sgHandler(argv)
+	elif argv[1] == "rg":
+		rgHandler(argv)
+	elif argv[1] == "logout":
+		return
+
 
 
 def loginHandler(argv):
 	print("User ID: " + argv[2])
+
+def rgHandler(argv):
+	if(len(argv)==):
+		n = 2
+	elif (len(argv)==3):
+		n = argv[2]
+	else:
+		print("Illegal arguements detected")
+		return
+
 
 def agHandler(argv):
 	if(len(argv)==2):
