@@ -47,6 +47,8 @@ def rgHandler(argv):#INCOMPLETE
 	else:
 		print("Illegal arguements detected")
 		return
+	
+
 
 def agHandler(argv):
 	if(len(argv)==1):
@@ -102,7 +104,6 @@ def agHandler(argv):
 
 	userData.close() #closing file
 	os.remove(currentUserID) #removing file
-	# print("File Removed!")
 
 	newList = []############# A brave workaround ##############
 	for a in subscribedGroupList:
@@ -120,7 +121,7 @@ def sgHandler(argv):
 	if(len(argv)==1):
 		n = 5
 	elif (len(argv)==2):
-		n = argv[1]
+		n = int(argv[1])
 	else:
 		print("Illegal arguements detected")
 		return
@@ -128,7 +129,7 @@ def sgHandler(argv):
 	#User data related to subscribed group is accessed from .txt file
 	userData = 0
 	try:
-		userData = open("userData", 'r+')#read from existing file
+		userData = open(currentUserID, 'r+')#read from existing file
 	except FileNotFoundError:
 		print("User data is empty")
 		return
@@ -164,17 +165,15 @@ def sgHandler(argv):
 	print(newSubscribedGroupList)
 
 	userData.close() #closing file
-	os.remove("userData") #removing file
+	os.remove(currentUserID) #removing file
 	# print("File Removed!")
 
 	newList = []############# A brave workaround ##############
 	for a in newSubscribedGroupList:
 		if len(a) > 1:
 			newList.append(a)
-		else:
-			print("Fuck it")#Needs to be replaced with something more decent
-
-	userData = open("userData","w+")
+			
+	userData = open(currentUserID,"w+")
 	for i in range(len(newList)):
 		userData.write(newList[i]+"\n")
 
