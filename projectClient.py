@@ -8,9 +8,9 @@ clientSocket = None
 fromServerAG= "Group 1`Group 2`Group 3`Group 4`Group 5`Group 6"
 def main():
 	argv = input("Type in your login ID: ")
-	global clientSocket
-	clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	clientSocket.connect(("allv24.all.cs.stonybrook.edu", 6789))
+	# global clientSocket
+	# clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	# clientSocket.connect(("allv24.all.cs.stonybrook.edu", 6789))
 	loginHandler(argv)
 	while(1):
 		argv = input("Enter command: ")
@@ -82,30 +82,34 @@ def agHandler(argv):
 		print("Illegal arguements detected")
 		return
 
+	# argument = str.encode(argv[0])
+	# clientSocket.sendall(argument)
+	# serverGroupsName = clientSocket.recv(4096)#fromServerAG.split("`")
+	# decodedString = serverGroupsName.decode("utf-8")
+	# discussions = decodedString.split(",")
+	discussions = fromServerAG.split("`")
+
 	userData = open(currentUserID,"r+")
 	userDataRead = userData.read()
-	subscribedGroupList = userDataRead.split("\n")#Lists all the groups the current user is suscribed to
-	# subscribedGroupList = []
-	argument = str.encode(argv[0])
-	clientSocket.sendall(argument)
-	serverGroupsName = clientSocket.recv(4096)#fromServerAG.split("`")
-	decodedString = serverGroupsName.decode("utf-8")
-	discussions = decodedString.split(",")
-	print(discussions)
-	# for i in range(len(rawSubscribedGroupList)):
-	# 	groupName = rawSubscribedGroupList[i].split(" ")
-	# 	string = ""
-	# 	for j in range(len(groupName)-1):
-	# 		string = groupName[i] + " "
-	# 	subscribedGroupList.append(string)
-	# print(subscribedGroupList)
+	rawSubscribedGroupList = userDataRead.split("\n")#Lists all the groups the current user is suscribed to
+	subscribedGroupList = []
+	unReadMessages = []
+	print(rawSubscribedGroupList)
+	try:
+		for i in range(len(rawSubscribedGroupList)):
+			groupName = rawSubscribedGroupList[i].split("`")
+			subscribedGroupList.append(groupName[0])
+			unReadMessages.append(groupName[1])
+		print(subscribedGroupList)
+	except Exception:
+		print("User data is corrupted, delete file to continue")
 
 	for i in range(1, len(discussions)+1):
 		if (discussions[i-1] not in subscribedGroupList):
-			print(str(i) + "\t( )\t" + discussions[i-1])
+			print(str(((i-1)%n)+1) + "\t( )\t" + discussions[i-1])
 		else:
-			print(str(i) + "\t(s)\t" + discussions[i-1])
-
+			print(str(((i-1)%n)+1) + "\t(s)\t" + discussions[i-1])
+#    if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
 		if (i% n == 0 and i != 1) or i == len(discussions) :
 			print("Current subs group: " + str(subscribedGroupList))
 			userInput = input("Type:\ns to suscribe\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
@@ -116,43 +120,58 @@ def agHandler(argv):
 			elif userInput[0] == "s":
 				if (len(userInput) > 1):
 					for j in range(1, len(userInput)):
-						if (int(userInput[j])-1 > len(discussions)-1) or int(userInput[j]) < 1:
+						index = (int(userInput[j])+(i-n))-1
+
+						if (index  > len(discussions)-1) or int(userInput[j]) < 1:
 							print("Invalid index")
 						else:
-							if discussions[int(userInput[j])-1] not in subscribedGroupList:
-								subscribedGroupList.append(discussions[int(userInput[j])-1])
-								print("You have successfully suscribed to: " + discussions[int(userInput[j])-1])
+							if discussions[index] not in subscribedGroupList:
+								subscribedGroupList.insert(0,discussions[index])
+								unReadMessages.insert(0,"0")
+								print("You have successfully suscribed to: " + discussions[index])
 							else:
-								print("You are already suscribed to " + discussions[int(userInput[j])-1])
+								print("You are already suscribed to " + discussions[index])
 				else:
 					print("Not enough arguements provided")
 			elif userInput[0] == "u":
 				if (len(userInput) > 1):
 					for j in range(1, len(userInput)):
-						if discussions[int(userInput[j])-1] in subscribedGroupList:
-							subscribedGroupList.remove(discussions[int(userInput[j])-1])
-							print("You have successfully unsuscribed to: " + discussions[int(userInput[j])-1])
+						x = int(((i-1)/n))*n
+						index = (int(userInput[j])+x)-1
+						print(index)
+						if (index  > len(discussions)-1) or int(userInput[j]) < 1:
+							print("Invalid index")
 						else:
-							print("You cannot unsuscribe from a group that you are not suscribed to.")
+							if discussions[index] in subscribedGroupList:
+								subscribedGroupListIndex = subscribedGroupList.index(discussions[index])
+								subscribedGroupList.remove(discussions[index])
+								unReadMessages.pop(subscribedGroupListIndex)
+								print("You have successfully unsuscribed to: " + discussions[index])
+							else:
+								print("You cannot unsuscribe from a group that you are not suscribed to.")
 				else:
 					print("Not enough arguements provided")
-
+			else:
+				print("Command not found")
 	print(subscribedGroupList)
 
 	userData.close() #closing file
 	os.remove(currentUserID) #removing file
 
 	newList = []############# A brave workaround ##############
-	for a in subscribedGroupList:
-		if len(a) > 1:
-			newList.append(a)
+	print(subscribedGroupList)
+	print(unReadMessages)
+	iterate = min(len(subscribedGroupList),len(unReadMessages))
+	for i in range(int(iterate)):
+		if len(subscribedGroupList[i]) > 1:
+			string = subscribedGroupList[i] + "`" + unReadMessages[i]
+			newList.append(string)
 
 	userData = open(currentUserID,"w+")
 	for i in range(len(newList)):
 		userData.write(newList[i]+"\n")
 
 	userData.close() #closing file
-
 
 def sgHandler(argv):
 	if(len(argv)==1):
@@ -171,19 +190,37 @@ def sgHandler(argv):
 		print("User data is empty")
 		return
 
+	userData = open(currentUserID,"r+")
 	userDataRead = userData.read()
-	subscribedGroupList = userDataRead.split("\n")
+	rawSubscribedGroupList = userDataRead.split("\n")#Lists all the groups the current user is suscribed to
+	subscribedGroupList = []
+	unReadMessages = []
+	print(rawSubscribedGroupList)
+	try:
+		for i in range(len(rawSubscribedGroupList)):
+			groupName = rawSubscribedGroupList[i].split("`")
+			subscribedGroupList.append(groupName[0])
+			unReadMessages.append(groupName[1])
+		print(subscribedGroupList)
+	except Exception:
+		print("User data is corrupted, delete file and restart")
+	print(subscribedGroupList)
+	print(unReadMessages)
 
 	newSubscribedGroupList = []
-	for i in subscribedGroupList: #existing list from file
-		newSubscribedGroupList.append(i) #we will delete from this list and write this list to file
+	newUnReadMessages = []
+	iterate = min(len(unReadMessages),len(subscribedGroupList))
+	for i in range(iterate): #existing list from file
+		newSubscribedGroupList.append(subscribedGroupList[i]) #we will delete from this list and write this list to file
+		newUnReadMessages.append(unReadMessages[i])
 
-	for i in range(1, len(subscribedGroupList)):
-		print(str(i) + ".\tRR\t" + subscribedGroupList[i-1])
 
-		if (i% n == 0 and i != 1) or i == len(subscribedGroupList) :
+	for i in range(1, iterate+1):
+		print(str(((i-1)%n)+1) + ".\t"+unReadMessages[i-1]+"\t" + subscribedGroupList[i-1])
+
+		if (i% n == 0 and i != 1) or i == len(subscribedGroupList)+1 :
 			# print("Current subs group: " + str(subscribedGroupList))
-			userInput = input("Type:\n s to suscribe\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
+			userInput = input("Type:\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
 			if userInput[0] == "n":
 				continue
 			elif userInput[0] == "q":
@@ -191,24 +228,33 @@ def sgHandler(argv):
 			elif userInput[0] == "u":
 				if (len(userInput) > 1):
 					for j in range(1, len(userInput)):
-						if subscribedGroupList[int(userInput[j])-1] in newSubscribedGroupList:
-							newSubscribedGroupList.remove(subscribedGroupList[int(userInput[j])-1])
-							print("You have successfully unsuscribed to: " + subscribedGroupList[int(userInput[j])-1])
+						x = int(((i-1)/n))*n
+						index = (int(userInput[j])+x)-1
+						if (index  > len(subscribedGroupList)-1) or int(userInput[j]) < 1:
+							print("Invalid index")
 						else:
-							print("You cannot unsuscribe from a group that you are not suscribed to.")
+							if subscribedGroupList[index] in newSubscribedGroupList:
+								newSubscribedGroupListIndex = newSubscribedGroupList.index(subscribedGroupList[index])
+								newSubscribedGroupList.remove(subscribedGroupList[index])
+								newUnReadMessages.pop(newSubscribedGroupListIndex)
+								print("You have successfully unsuscribed to: " + subscribedGroupList[index])
+							else:
+								print("You cannot unsuscribe from a group that you are not suscribed to.")
 				else:
 					print("Not enough arguements provided")
-
+			else:
+				print("Command not found")
 	print(newSubscribedGroupList)
 
 	userData.close() #closing file
 	os.remove(currentUserID) #removing file
-	# print("File Removed!")
 
 	newList = []############# A brave workaround ##############
-	for a in newSubscribedGroupList:
-		if len(a) > 1:
-			newList.append(a)
+	iterate = min(len(newSubscribedGroupList),len(newUnReadMessages))
+	for i in range(iterate):
+		if len(newSubscribedGroupList[i]) > 1:
+			string = newSubscribedGroupList[i] + "`" + newUnReadMessages[i]
+			newList.append(string)
 
 	userData = open(currentUserID,"w+")
 	for i in range(len(newList)):
