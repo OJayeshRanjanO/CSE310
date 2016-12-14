@@ -19,10 +19,10 @@ class Message:
         self.postDate = postDate
         self.subject = subject
         self.body = body
-FirstPost = Message("Admin(Client Developer) Jayesh","Jan 01 01:01:01","Welcome","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
-SecondPost = Message("Admin(Server Developer) Patrick","Jan 01 01:01:01","To","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
-ThirdPost = Message("Admin(QA) Christian","Jan 01 01:01:01","Group","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
-FourthPost = Message("Admin(QA) Alexandria","Jan 01 01:01:01","34","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
+FirstPost = Message("Admin(Client Developer) Jayesh","Jan 1 1:1:1","Welcome","\tParagraph1:First Line\nSecond Line\n\tParagraph2:First Line\nSecond Line")
+SecondPost = Message("Admin(Server Developer) Patrick","Jan 1 1:1:2","To","\tParagraph1:First Line\nSecond Line\n\tParagraph2:First Line\nSecond Line")
+ThirdPost = Message("Admin(QA) Christian","Jan 1 1:1:3","Group","\tParagraph1:First Line\nSecond Line\n\tParagraph2:First Line\nSecond Line")
+FourthPost = Message("Admin(QA) Alexandria","Jan 1 1:1:4","34","\tParagraph1:First Line\nSecond Line\n\tParagraph2:First Line\nSecond Line")
 class discussionGroup:
     def __init__(self, dgName):
         self.name = dgName
@@ -66,16 +66,13 @@ def handler(connectionSocket, addr):
     while 1:
         request = connectionSocket.recv(4096)
         request = request.decode()
-        print(request)
 
         inputCommand = request.split("`")
         if inputCommand[0] == "ag":
-            print("you reached command ag")
             connectionSocket.send("Group.0,Group.1,Group.2,Group.3,Group.4,Group.5,Group.6,Group.7,Group.8,Group.9,Group.10,Group.11,Group.12,Group.13,Group.14")
             # messageSubject = str(groups[1].message[0].subject)
             # connectionSocket.send(messageSubject)
         elif inputCommand[0] == "sg":
-            print("you reached command sg")
             toSend = ""
             for i in range(1,len(inputCommand)):
                 if(len(inputCommand[i]) > 0):
@@ -96,8 +93,17 @@ def handler(connectionSocket, addr):
         #client wants to read a post
         elif inputCommand[0] == "id":
             groupName = str(inputCommand[1])
-            groupID = groupMap[groupName]
-            messageID = int(inputCommand[2])
+            messageDate = str(inputCommand[2])
+            groupID
+            for groupID in range(len(groups)):
+                if(groups[groupID].name == groupName):
+                    break
+
+            messageID = 0
+            for messageID in range(len(groups[groupID].message)):
+                if(groups[groupID].message[messageID].postDate == messageDate):
+                    break
+
             displayDate = str(groups[groupID].message[messageID].postDate)
             displaySubject = str(groups[groupID].message[messageID].subject)
             displayAuthor = str(groups[groupID].message[messageID].userName)
@@ -106,17 +112,12 @@ def handler(connectionSocket, addr):
 
         elif inputCommand[0] == "p":
             postUsername = str(inputCommand[1])
-            # print("Author: " + postUsername)
             postGroup = str(inputCommand[2])
-            # print("Group: " + postGroup)
             postSubject = str(inputCommand[3])
-            # print("Subject: " + postSubject)
             postContent = str(inputCommand[4])
-            # print("Content: " + postContent)
             now = datetime.datetime.now()
             months =["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
             postTime = str(months[int(now.month)-1]) + " " + str(now.day) + " " + str(now.hour)+":"+str(now.minute)+":"+str(now.second)
-            # print("Time: " + postTime)
             groupID = groupMap[postGroup]
             messagePost = Message(postUsername,postTime,postSubject,postContent)
             groups[groupID].message.insert(0,messagePost)

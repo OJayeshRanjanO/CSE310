@@ -107,15 +107,17 @@ def rgHandler(argv):#INCOMPLETE
 					content = content + ui + "\\n"
 				global post
 				post = "p`"+currentUserID +"`"+ groupName +"`"+ subject +"`"+ content
-				print(post)
+
 				argument = str.encode(post)
 				clientSocket.sendall(argument)
+
 			elif (userInput[0] >= "1") or (userInput[0] <= (str(n))):
-				getDate = int(userInput[0]) + (int(i/n))*n
-				argument = str.encode(toSend)
-				clientSocket.sendall(argument)
-				serverGroupsDates = clientSocket.recv(4096)
-				global post
+				messageIndex = (int(userInput[0])-1) + (int(i/n))*n
+				toSend = dateMessage[messageIndex]
+				toSend = "id`"+groupName+"`"+str(toSend)
+				argumentID = str.encode(toSend)
+				clientSocket.sendall(argumentID)
+				post = clientSocket.recv(4096).decode("utf-8")
 	            # post = "Nov 2016`Subject`Author`ContentLine1\\nContentLine2\\nContentLine3\\nContentLine4\\nContentLine5"
 				serverPost = post.split("`")
 				if(len(serverPost) == 4):
@@ -129,7 +131,7 @@ def rgHandler(argv):#INCOMPLETE
 						if len(j) > 0:
 							content.append(j)
 					for j in range(len(content)):
-						print("\t" + content[j])
+						print(content[j])#this prints out the lines
 						if((j+1)%n == 0 and j!=0) or j == len(content)-1:
 							userInput = input("Type:\nn to read next " + str(n) + " lines\nq to exit post: ").split(" ")
 							if userInput[0] == "n":
@@ -150,7 +152,11 @@ def agHandler(argv):
 	if(len(argv)==1):
 		n = 5
 	elif (len(argv)==2):
-		n = int(argv[1])
+		try:
+			n = int(argv[1])
+		except Exception:
+			print("Illegal arguements detected")
+			return
 	else:
 		print("Illegal arguements detected")
 		return
@@ -167,13 +173,13 @@ def agHandler(argv):
 	rawSubscribedGroupList = userDataRead.split("\n")#Lists all the groups the current user is suscribed to
 	subscribedGroupList = []
 	unReadMessages = []
-	print(rawSubscribedGroupList)
+
 	try:
 		for i in range(len(rawSubscribedGroupList)):
 			groupName = rawSubscribedGroupList[i].split("`")
 			subscribedGroupList.append(groupName[0])
 			unReadMessages.append(groupName[1])
-		print(subscribedGroupList)
+
 	except Exception:
 		print("User data is corrupted, delete file to continue")
 
@@ -182,9 +188,9 @@ def agHandler(argv):
 			print(str(((i-1)%n)+1) + "\t( )\t" + discussions[i-1])
 		else:
 			print(str(((i-1)%n)+1) + "\t(s)\t" + discussions[i-1])
-#    if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
+
 		if (i% n == 0 and i != 1) or i == len(discussions) :
-			print("Current subs group: " + str(subscribedGroupList))
+
 			userInput = input("Type:\ns to suscribe\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
 			if userInput[0] == "n":
 				continue
@@ -211,7 +217,6 @@ def agHandler(argv):
 					for j in range(1, len(userInput)):
 						x = int(((i-1)/n))*n
 						index = (int(userInput[j])+x)-1
-						print(index)
 						if (index  > len(discussions)-1) or int(userInput[j]) < 1:
 							print("Invalid index")
 						else:
@@ -226,14 +231,12 @@ def agHandler(argv):
 					print("Not enough arguements provided")
 			else:
 				print("Command not found")
-	print(subscribedGroupList)
 
 	userData.close() #closing file
 	os.remove(currentUserID) #removing file
 
 	newList = []############# A brave workaround ##############
-	print(subscribedGroupList)
-	print(unReadMessages)
+
 	iterate = min(len(subscribedGroupList),len(unReadMessages))
 	for i in range(int(iterate)):
 		if len(subscribedGroupList[i]) > 1:
@@ -268,15 +271,13 @@ def sgHandler(argv):
 	rawSubscribedGroupList = userDataRead.split("\n")#Lists all the groups the current user is suscribed to
 	subscribedGroupList = []
 	unReadMessages = []
-	print(rawSubscribedGroupList)
+
 	try:
 		for i in range(len(rawSubscribedGroupList)):
 			if(len(rawSubscribedGroupList[i]) > 0):
 				groupName = rawSubscribedGroupList[i].split("`")
 				subscribedGroupList.append(groupName[0])
 				unReadMessages.append(groupName[1])
-		print(subscribedGroupList)
-		print(unReadMessages)
 	except Exception:
 		print("User data is corrupted, delete file and restart")
 
@@ -298,7 +299,7 @@ def sgHandler(argv):
 	serverGroupsName = clientSocket.recv(4096)#fromServerAG.split("`")
 	decodedString = serverGroupsName.decode("utf-8")
 	fromServer = decodedString.split("`") #This is the return from the server
-	print(fromServer) 
+
 	discussions =[]
 	for i in fromServer:
 		if(len(i) > 0):
@@ -308,7 +309,6 @@ def sgHandler(argv):
 		print(str(((i-1)%n)+1) + ".\t"+str(int(discussions[i-1])-int(unReadMessages[i-1]))+"\t" + subscribedGroupList[i-1])
 
 		if (i% n == 0 and i != 1) or i == len(subscribedGroupList):
-			# print("Current subs group: " + str(subscribedGroupList))
 			userInput = input("Type:\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
 			if userInput[0] == "n":
 				continue
@@ -333,7 +333,6 @@ def sgHandler(argv):
 					print("Not enough arguements provided")
 			else:
 				print("Command not found")
-	print(newSubscribedGroupList)
 
 	userData.close() #closing file
 	os.remove(currentUserID) #removing file
