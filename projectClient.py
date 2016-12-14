@@ -18,7 +18,7 @@ def main():
 	argv = input("Type in your login ID: ")
 	loginHandler(argv)
 	while(1):
-		argv = input("Enter command: ")
+		argv = input("Enter command (help to display help menu): ")
 		argv = argv.split(" ")
 		parseArgs(argv)
 
@@ -29,12 +29,19 @@ def parseArgs(argv):
 		sgHandler(argv)
 	elif argv[0] == "rg":
 		rgHandler(argv)
+	elif argv[0] == "help":
+		helpMenu()
 	elif argv[0] == "logout":
 		print(str(currentUserID) + " is logging out")
 		clientSocket.close()
 		sys.exit(0)
 	else:
 		print("Invalid command")
+def helpMenu():
+	print("ag - Show all groups (Usage: ag n)")
+	print("sg - Show subscribed groups (Usage: sg n)")
+	print("rg - Read group (Usage: rg [gname] n)")
+	print("logout - Logout current user (Usage: logout)")
 
 def loginHandler(argv):
 	print("Weclome " + argv)
@@ -77,40 +84,61 @@ def rgHandler(argv):#INCOMPLETE
 	for i in rawPostMessage:
 		if(len(i) > 0):
 			postMessage.append(i)
-	print(postMessage)
-	print(dateMessage)
 
-	
+	userData = open(currentUserID,"r+")
+	userDataRead = userData.read()
+	rawSubscribedGroupList = userDataRead.split("\n")
+	subscribedGroupList = []
+	unReadMessages = []
+
+	for i in range(len(rawSubscribedGroupList)):
+		if(len(rawSubscribedGroupList[i]) > 0):
+			temp = rawSubscribedGroupList[i].split("`")
+			subscribedGroupList.append(temp[0])
+			unReadMessages.append(int(temp[1]))
+
+	iterate = min(len(unReadMessages),len(subscribedGroupList))
+	GID = 0
+	for GID in range(iterate):
+		if(subscribedGroupList[GID] == groupName):
+			break
+	unread = int(unReadMessages[GID])
+	unread = len(postMessage) - unread
+
+	sendToServer = ""
+	for i in range(len(subscribedGroupList)):
+		sendToServer = sendToServer + subscribedGroupList[i]+"`"#THIS IS WHAT I SEND TO SERVER
+	sendToServer = "sg" + "`"+sendToServer
+
+	userData.close()
 
 	for i in range(min(len(postMessage),len(dateMessage))):
-	    if(i < unread):
-	        if(str(i+1) not in listRead):
-	            print(str((i%n)+1)+".\tN\t" + dateMessage[i] +" "+postMessage[i])
-	        else:
-		print(str((i%n)+1)+".\t" + dateMessage[i] +"\t\t"+postMessage[i])
-	    else:
-	        print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
+		if(i < unread):
+			print(str((i%n)+1)+".\tN\t" + dateMessage[i] +" "+postMessage[i])
+		else:
+			print(str((i%n)+1)+".\t \t" + dateMessage[i] +" "+postMessage[i])
+
 		if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
 			userInput = input("Type:\nn lists the next "+str(n) +" posts\np to post\nr to mark as read\n[id] to read a post\nq to exit\nChoose: ").split(" ")
 			if(userInput[0]=="n"):
 				continue
-	#         elif(userInput[0]=="r"):
-	#             if (len(userInput)>1) and  (len(userInput)<3):
-	#                 tempRead = userInput[1].split("-")
-	#                 if (len(tempRead)==1):
-	#                     listRead = tempRead
-	#                 elif (len(tempRead)==2):
-	#                     for j in range(int(tempRead[0]),int(tempRead[1])+1):
-	#                         listRead.append(str(j))
-	#                 else:
-	#                     print("Invalid arguments")
-	#             else:
-	#                 print("Invalid arguments")
+			# elif(userInput[0]=="r"):
+			# 	if (len(userInput)>1) and  (len(userInput)<3):
+			# 		tempRead = userInput[1].split("-")
+			# 		if (len(tempRead)==1):
+			# 			listRead = tempRead
+			# 		elif (len(tempRead)==2):
+			# 			for j in range(int(tempRead[0]),int(tempRead[1])+1):
+			# 				listRead.append(str(j))
+			# 		else:
+			# 			print("Invalid arguments")
+			# 	else:
+			# 		print("Invalid arguments")
 			elif (userInput[0]=="p"):
 				subject = input("Enter subject: ")
 				content=""
 				while(True):
-					ui = input("Enter content: ")
+					ui = input("Enter content (Type 0x0 to finish typing): ")
 					if(ui =="0x0"):
 						break
 					content = content + ui + "\\n"

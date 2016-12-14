@@ -70,8 +70,6 @@ def handler(connectionSocket, addr):
         inputCommand = request.split("`")
         if inputCommand[0] == "ag":
             connectionSocket.send("Group.0,Group.1,Group.2,Group.3,Group.4,Group.5,Group.6,Group.7,Group.8,Group.9,Group.10,Group.11,Group.12,Group.13,Group.14")
-            # messageSubject = str(groups[1].message[0].subject)
-            # connectionSocket.send(messageSubject)
         elif inputCommand[0] == "sg":
             toSend = ""
             for i in range(1,len(inputCommand)):
