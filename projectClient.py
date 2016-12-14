@@ -5,12 +5,11 @@ import socket
 currentUserID = "" #This will hold the user id info
 clientSocket = None
 #DISCUSSIONS IS INPUT FROM SERVER THIS IS JUST TO TEST GROUPS
-fromServerAG= "Group 1`Group 2`Group 3`Group 4`Group 5`Group 6"
 def main():
 	argv = input("Type in your login ID: ")
-	# global clientSocket
-	# clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	# clientSocket.connect(("allv24.all.cs.stonybrook.edu", 6789))
+	global clientSocket
+	clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	clientSocket.connect(("allv24.all.cs.stonybrook.edu", 6789))
 	loginHandler(argv)
 	while(1):
 		argv = input("Enter command: ")
@@ -25,7 +24,7 @@ def parseArgs(argv):
 		rgHandler(argv)
 	elif argv[0] == "logout":
 		print(str(currentUserID) + " is logging out")
-		# clientSocket.close()
+		clientSocket.close()
 		sys.exit(0)
 	else:
 		print("Invalid command")
@@ -54,24 +53,96 @@ def rgHandler(argv):#INCOMPLETE
 	else:
 		print("Illegal arguements detected")
 		return
-	# postMessage = ["Message1","Message2","Message3","Message4","Message5","Message6"]
-	# dateMessage = ["Nov 2016","Dec 2016","Jan 2017","Feb 2017","Mar 2017","Apr 2017"]
-	# unread = 5
-	# listRead = []
-	# for i in range(len(postMessage)):
-	# 	if(i < unread):
-	# 		if(str(i+1) not in listRead)
-	# 			print(str(i+1)+". N " + dateMessage[i] +" "+postMessage[i])
-	# 		else:
-	# 			print(str(i+1)+".   " + dateMessage[i] +" "+postMessage[i])				
-	# 	else:
-	# 		print(str(i+1)+".   " + dateMessage[i] +" "+postMessage[i])
- #    	if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
-	# 		userInput = input("Type:\nn lists the next "+str(n) +" posts\nListChoose: ").split(" ")
-	#         if(userInput[0]=="n"):
-	#             continue
+	toSend = argv[0] +"`" + argv[1]
+
+	argument = str.encode(toSend)
+	clientSocket.sendall(argument)
+	serverGroupsDates = clientSocket.recv(4096)
+	serverGroupsSubjects = clientSocket.recv(4096)
+	decodedStringSubject = serverGroupsSubjects.decode("utf-8")
+	decodedStringDate = serverGroupsDates.decode("utf-8")
+	rawPostMessage = decodedStringSubject.split("`")
+	rawDateMessage = decodedStringDate.split("`")
+	postMessage = []
+	dateMessage = []
+	for i in rawDateMessage:
+		if(len(i) > 0):
+			dateMessage.append(i)
+	for i in rawPostMessage:
+		if(len(i) > 0):
+			postMessage.append(i)
+	print(postMessage)
+	print(dateMessage)
+
+	for i in range(min(len(postMessage),len(dateMessage))):
+	    # if(i < unread):
+	    #     if(str(i+1) not in listRead):
+	    #         print(str((i%n)+1)+".\tN\t" + dateMessage[i] +" "+postMessage[i])
+	    #     else:
+	    print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
+	    # else:
+	    #     print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
+	    if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
+	        userInput = input("Type:\nn lists the next "+str(n) +" posts\nListChoose: ").split(" ")
+	        if(userInput[0]=="n"):
+	            continue
 	#         elif(userInput[0]=="r"):
-	#         	listRead = userInput[0].split("-")
+	#             if (len(userInput)>1) and  (len(userInput)<3):
+	#                 tempRead = userInput[1].split("-")
+	#                 if (len(tempRead)==1):
+	#                     listRead = tempRead
+	#                 elif (len(tempRead)==2):
+	#                     for j in range(int(tempRead[0]),int(tempRead[1])+1):
+	#                         listRead.append(str(j))
+	#                 else:
+	#                     print("Invalid arguments")
+	#             else:
+	#                 print("Invalid arguments")
+	        elif (userInput[0]=="p"):
+	            subject = input("Enter subject: ")
+	            content=""
+	            while(True):
+	                ui = input("Enter content: ")
+	                if(ui =="\\n.\\n"):
+	                    break
+	                content = content + ui + "\\n"
+	            global post
+	            post = "p`"+currentUserID +"`"+ group +"`"+ subject +"`"+ content
+	            print(post)
+	            argument = str.encode(post)
+				clientSocket.sendall(argument)
+	#         elif (userInput[0] >= "1") or (userInput[0] <= (str(n))):
+	#             global post
+	#             # post = "Nov 2016`Subject`Author`ContentLine1\\nContentLine2\\nContentLine3\\nContentLine4\\nContentLine5"
+	#             serverPost = post.split("`")
+	#             if(len(serverPost) == 4):
+	#                 print("Group: " + group)
+	#                 print("Subject: " + serverPost[1])
+	#                 print("Author: " + serverPost[2])
+	#                 print("Date: " + serverPost[0])
+	#                 RawContent = serverPost[3].split('\\n')
+	#                 content = []
+	#                 for j in RawContent:
+	#                     if len(j) > 0:
+	#                         content.append(j)
+	#                 n = 2
+	#                 for j in range(len(content)):
+	#                     print("\t" + content[j])
+	#                     if((j+1)%n == 0 and j!=0) or j == len(content)-1:
+	#                         userInput = input("Type:\nn to read next " + str(n) + " lines\nq to exit post: ").split(" ")
+	#                         if userInput[0] == "n":
+	#                             if j == len(content):
+	#                                 print("Nothing more to read.. Exiting Post\n")
+	#                                 break
+	#                             continue
+	#                         elif userInput[0] == "q":
+	#                             print("Exiting Post\n")
+	#                             break
+	#             else:
+	#                 print("Error occoured while recieving message")
+
+	        elif (userInput[0]=="q"):
+	            break
 
 def agHandler(argv):
 	if(len(argv)==1):
@@ -82,12 +153,12 @@ def agHandler(argv):
 		print("Illegal arguements detected")
 		return
 
-	# argument = str.encode(argv[0])
-	# clientSocket.sendall(argument)
-	# serverGroupsName = clientSocket.recv(4096)#fromServerAG.split("`")
-	# decodedString = serverGroupsName.decode("utf-8")
-	# discussions = decodedString.split(",")
-	discussions = fromServerAG.split("`")
+	argument = str.encode(argv[0])
+	clientSocket.sendall(argument)
+	serverGroupsName = clientSocket.recv(4096)#fromServerAG.split("`")
+	decodedString = serverGroupsName.decode("utf-8")
+	discussions = decodedString.split(",")
+	# discussions = fromServerAG.split("`")
 
 	userData = open(currentUserID,"r+")
 	userDataRead = userData.read()
@@ -198,14 +269,14 @@ def sgHandler(argv):
 	print(rawSubscribedGroupList)
 	try:
 		for i in range(len(rawSubscribedGroupList)):
-			groupName = rawSubscribedGroupList[i].split("`")
-			subscribedGroupList.append(groupName[0])
-			unReadMessages.append(groupName[1])
+			if(len(rawSubscribedGroupList[i]) > 0):
+				groupName = rawSubscribedGroupList[i].split("`")
+				subscribedGroupList.append(groupName[0])
+				unReadMessages.append(groupName[1])
 		print(subscribedGroupList)
+		print(unReadMessages)
 	except Exception:
 		print("User data is corrupted, delete file and restart")
-	print(subscribedGroupList)
-	print(unReadMessages)
 
 	newSubscribedGroupList = []
 	newUnReadMessages = []
@@ -214,11 +285,27 @@ def sgHandler(argv):
 		newSubscribedGroupList.append(subscribedGroupList[i]) #we will delete from this list and write this list to file
 		newUnReadMessages.append(unReadMessages[i])
 
+	sendToServer = ""
+	for i in range(len(subscribedGroupList)):
+		sendToServer = sendToServer + subscribedGroupList[i]+"`"#THIS IS WHAT I SEND TO SERVER
+	sendToServer = "sg" + "`"+sendToServer
+
+	argument = str.encode(sendToServer)
+	clientSocket.sendall(argument)
+	
+	serverGroupsName = clientSocket.recv(4096)#fromServerAG.split("`")
+	decodedString = serverGroupsName.decode("utf-8")
+	fromServer = decodedString.split("`") #This is the return from the server
+	print(fromServer) 
+	discussions =[]
+	for i in fromServer:
+		if(len(i) > 0):
+			discussions.append(i)
 
 	for i in range(1, iterate+1):
-		print(str(((i-1)%n)+1) + ".\t"+unReadMessages[i-1]+"\t" + subscribedGroupList[i-1])
+		print(str(((i-1)%n)+1) + ".\t"+str(int(discussions[i-1])-int(unReadMessages[i-1]))+"\t" + subscribedGroupList[i-1])
 
-		if (i% n == 0 and i != 1) or i == len(subscribedGroupList)+1 :
+		if (i% n == 0 and i != 1) or i == len(subscribedGroupList):
 			# print("Current subs group: " + str(subscribedGroupList))
 			userInput = input("Type:\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
 			if userInput[0] == "n":
