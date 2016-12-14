@@ -6,15 +6,22 @@ currentUserID = "" #This will hold the user id info
 clientSocket = None
 #DISCUSSIONS IS INPUT FROM SERVER THIS IS JUST TO TEST GROUPS
 def main():
-	argv = input("Type in your login ID: ")
+	arguements = sys.argv
 	global clientSocket
 	clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	clientSocket.connect(("allv24.all.cs.stonybrook.edu", 3400))
+	try:
+		clientSocket.connect((arguements[1], int(arguements[2])))
+	except Exception:
+		print("Incorrect number of arguements provided")
+		return
+
+	argv = input("Type in your login ID: ")
 	loginHandler(argv)
 	while(1):
 		argv = input("Enter command: ")
 		argv = argv.split(" ")
 		parseArgs(argv)
+
 def parseArgs(argv):
 	if argv[0] == "ag":
 		agHandler(argv)
@@ -73,14 +80,16 @@ def rgHandler(argv):#INCOMPLETE
 	print(postMessage)
 	print(dateMessage)
 
+	
+
 	for i in range(min(len(postMessage),len(dateMessage))):
-	    # if(i < unread):
-	    #     if(str(i+1) not in listRead):
-	    #         print(str((i%n)+1)+".\tN\t" + dateMessage[i] +" "+postMessage[i])
-	    #     else:
+	    if(i < unread):
+	        if(str(i+1) not in listRead):
+	            print(str((i%n)+1)+".\tN\t" + dateMessage[i] +" "+postMessage[i])
+	        else:
 		print(str((i%n)+1)+".\t" + dateMessage[i] +"\t\t"+postMessage[i])
-	    # else:
-	    #     print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
+	    else:
+	        print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
 		if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
 			userInput = input("Type:\nn lists the next "+str(n) +" posts\np to post\nr to mark as read\n[id] to read a post\nq to exit\nChoose: ").split(" ")
 			if(userInput[0]=="n"):
@@ -253,7 +262,11 @@ def sgHandler(argv):
 	if(len(argv)==1):
 		n = 5
 	elif (len(argv)==2):
-		n = int(argv[1])
+		try:
+			n = int(argv[1])
+		except Exception:
+			print("Illegal arguements detected")
+			return
 	else:
 		print("Illegal arguements detected")
 		return
@@ -306,7 +319,10 @@ def sgHandler(argv):
 			discussions.append(i)
 
 	for i in range(1, iterate+1):
-		print(str(((i-1)%n)+1) + ".\t"+str(int(discussions[i-1])-int(unReadMessages[i-1]))+"\t" + subscribedGroupList[i-1])
+		if(int(discussions[i-1])-int(unReadMessages[i-1]) > 0):
+			print(str(((i-1)%n)+1) + ".\t"+str(int(discussions[i-1])-int(unReadMessages[i-1]))+"\t" + subscribedGroupList[i-1])
+		else:
+			print(str(((i-1)%n)+1) + ".\t \t" + subscribedGroupList[i-1])
 
 		if (i% n == 0 and i != 1) or i == len(subscribedGroupList):
 			userInput = input("Type:\nu to unsuscribe\nn to display next set of "+str(n) +" items\nq to quit\nChoose: ").split(" ")
