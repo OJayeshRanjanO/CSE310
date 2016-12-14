@@ -2,7 +2,7 @@ from socket import *
 import datetime
 import thread
 
-port = 6789
+port = 3400
 #groups[] holds objects in a list that hold the name of the group
 #the clients in the group, and the messages in the group
 groups = []
@@ -19,14 +19,14 @@ class Message:
         self.postDate = postDate
         self.subject = subject
         self.body = body
-w = Message("userName1","test date1","subject1","body1")
-x = Message("userName2","test date2","subject2","body2")
-y = Message("userName3","test date3","subject3","body3")
-z = Message("userName4","test date4","subject4","body4")
+FirstPost = Message("Admin(Client Developer) Jayesh","Jan 01 01:01:01","Welcome","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
+SecondPost = Message("Admin(Server Developer) Patrick","Jan 01 01:01:01","To","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
+ThirdPost = Message("Admin(QA) Christian","Jan 01 01:01:01","Group","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
+FourthPost = Message("Admin(QA) Alexandria","Jan 01 01:01:01","34","\tParagraph1:First Line\nSecond Line\n\n\tParagraph2:First Line\nSecond Line")
 class discussionGroup:
     def __init__(self, dgName):
         self.name = dgName
-        self.message = [w,x,y,z]
+        self.message = [FirstPost,SecondPost,ThirdPost,FourthPost]
         
 def init():
         g0 = discussionGroup('Group.0')
@@ -106,34 +106,20 @@ def handler(connectionSocket, addr):
 
         elif inputCommand[0] == "p":
             postUsername = str(inputCommand[1])
-            print("Author: " + postUsername)
+            # print("Author: " + postUsername)
             postGroup = str(inputCommand[2])
-            print("Group: " + postGroup)
+            # print("Group: " + postGroup)
             postSubject = str(inputCommand[3])
-            print("Subject: " + postSubject)
+            # print("Subject: " + postSubject)
             postContent = str(inputCommand[4])
-            print("Content: " + postContent)
-            postTime = str(datetime.datetime.now())
-            print("Time: " + postTime)
+            # print("Content: " + postContent)
+            now = datetime.datetime.now()
+            months =["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+            postTime = str(months[int(now.month)-1]) + " " + str(now.day) + " " + str(now.hour)+":"+str(now.minute)+":"+str(now.second)
+            # print("Time: " + postTime)
             groupID = groupMap[postGroup]
             messagePost = Message(postUsername,postTime,postSubject,postContent)
-            groups[groupID].message.append(messagePost)
-
-            dates = ""
-            subjects = ""
-            for i in range(len(groups[groupID].message)):
-                dates = str(groups[groupID].message[i].postDate) + "`"
-                subjects = str(groups[groupID].message[i].subject) + "`"
-            connectionSocket.send(dates)
-            connectionSocket.send(subjects)
-
-
-
-
-                
-
-
-
+            groups[groupID].message.insert(0,messagePost)
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 serverSocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)

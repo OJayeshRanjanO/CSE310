@@ -9,7 +9,7 @@ def main():
 	argv = input("Type in your login ID: ")
 	global clientSocket
 	clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	clientSocket.connect(("allv24.all.cs.stonybrook.edu", 6789))
+	clientSocket.connect(("allv24.all.cs.stonybrook.edu", 3400))
 	loginHandler(argv)
 	while(1):
 		argv = input("Enter command: ")
@@ -41,7 +41,6 @@ def loginHandler(argv):
 		userData.close()
 
 def rgHandler(argv):#INCOMPLETE
-	print(argv)
 	groupName = ""
 	n = 0
 	if(len(argv)==2):#Contains rg and the group name
@@ -79,13 +78,13 @@ def rgHandler(argv):#INCOMPLETE
 	    #     if(str(i+1) not in listRead):
 	    #         print(str((i%n)+1)+".\tN\t" + dateMessage[i] +" "+postMessage[i])
 	    #     else:
-	    print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
+		print(str((i%n)+1)+".\t" + dateMessage[i] +"\t\t"+postMessage[i])
 	    # else:
 	    #     print(str((i%n)+1)+".   " + dateMessage[i] +" "+postMessage[i])
-	    if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
-	        userInput = input("Type:\nn lists the next "+str(n) +" posts\nListChoose: ").split(" ")
-	        if(userInput[0]=="n"):
-	            continue
+		if ((i+1) % n == 0 and i != 0) or i == len(postMessage) - 1:
+			userInput = input("Type:\nn lists the next "+str(n) +" posts\np to post\nr to mark as read\n[id] to read a post\nq to exit\nChoose: ").split(" ")
+			if(userInput[0]=="n"):
+				continue
 	#         elif(userInput[0]=="r"):
 	#             if (len(userInput)>1) and  (len(userInput)<3):
 	#                 tempRead = userInput[1].split("-")
@@ -98,51 +97,54 @@ def rgHandler(argv):#INCOMPLETE
 	#                     print("Invalid arguments")
 	#             else:
 	#                 print("Invalid arguments")
-	        elif (userInput[0]=="p"):
-	            subject = input("Enter subject: ")
-	            content=""
-	            while(True):
-	                ui = input("Enter content: ")
-	                if(ui =="\\n.\\n"):
-	                    break
-	                content = content + ui + "\\n"
-	            global post
-	            post = "p`"+currentUserID +"`"+ group +"`"+ subject +"`"+ content
-	            print(post)
-	            argument = str.encode(post)
+			elif (userInput[0]=="p"):
+				subject = input("Enter subject: ")
+				content=""
+				while(True):
+					ui = input("Enter content: ")
+					if(ui =="0x0"):
+						break
+					content = content + ui + "\\n"
+				global post
+				post = "p`"+currentUserID +"`"+ groupName +"`"+ subject +"`"+ content
+				print(post)
+				argument = str.encode(post)
 				clientSocket.sendall(argument)
-	#         elif (userInput[0] >= "1") or (userInput[0] <= (str(n))):
-	#             global post
-	#             # post = "Nov 2016`Subject`Author`ContentLine1\\nContentLine2\\nContentLine3\\nContentLine4\\nContentLine5"
-	#             serverPost = post.split("`")
-	#             if(len(serverPost) == 4):
-	#                 print("Group: " + group)
-	#                 print("Subject: " + serverPost[1])
-	#                 print("Author: " + serverPost[2])
-	#                 print("Date: " + serverPost[0])
-	#                 RawContent = serverPost[3].split('\\n')
-	#                 content = []
-	#                 for j in RawContent:
-	#                     if len(j) > 0:
-	#                         content.append(j)
-	#                 n = 2
-	#                 for j in range(len(content)):
-	#                     print("\t" + content[j])
-	#                     if((j+1)%n == 0 and j!=0) or j == len(content)-1:
-	#                         userInput = input("Type:\nn to read next " + str(n) + " lines\nq to exit post: ").split(" ")
-	#                         if userInput[0] == "n":
-	#                             if j == len(content):
-	#                                 print("Nothing more to read.. Exiting Post\n")
-	#                                 break
-	#                             continue
-	#                         elif userInput[0] == "q":
-	#                             print("Exiting Post\n")
-	#                             break
-	#             else:
-	#                 print("Error occoured while recieving message")
+			elif (userInput[0] >= "1") or (userInput[0] <= (str(n))):
+				getDate = int(userInput[0]) + (int(i/n))*n
+				argument = str.encode(toSend)
+				clientSocket.sendall(argument)
+				serverGroupsDates = clientSocket.recv(4096)
+				global post
+	            # post = "Nov 2016`Subject`Author`ContentLine1\\nContentLine2\\nContentLine3\\nContentLine4\\nContentLine5"
+				serverPost = post.split("`")
+				if(len(serverPost) == 4):
+					print("Group: " + groupName)
+					print("Subject: " + serverPost[1])
+					print("Author: " + serverPost[2])
+					print("Date: " + serverPost[0])
+					RawContent = serverPost[3].split('\n')
+					content = []
+					for j in RawContent:
+						if len(j) > 0:
+							content.append(j)
+					for j in range(len(content)):
+						print("\t" + content[j])
+						if((j+1)%n == 0 and j!=0) or j == len(content)-1:
+							userInput = input("Type:\nn to read next " + str(n) + " lines\nq to exit post: ").split(" ")
+							if userInput[0] == "n":
+								if j == len(content):
+									print("Nothing more to read.. Exiting Post\n")
+									break
+								continue
+							elif userInput[0] == "q":
+								print("Exiting Post\n")
+								break
+				else:
+					print("Error occoured while recieving message")
 
-	        elif (userInput[0]=="q"):
-	            break
+			elif (userInput[0]=="q"):
+				break
 
 def agHandler(argv):
 	if(len(argv)==1):
